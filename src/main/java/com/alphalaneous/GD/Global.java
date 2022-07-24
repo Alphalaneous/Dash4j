@@ -1,6 +1,8 @@
 package com.alphalaneous.GD;
 
+import com.alphalaneous.Interfaces.Function;
 import com.alphalaneous.Memory;
+import com.alphalaneous.Utilities;
 
 import java.awt.*;
 
@@ -18,6 +20,44 @@ public class Global {
     public static boolean isInLevel(){
         int[] inLevel = {0x164};
         return Memory.read(inLevel, 1).getByte(0) != 0;
+    }
+
+    public static void onEnterLevel(Function function){
+        new Thread(() ->{
+            boolean lastIsInLevel = false;
+            while(true) {
+                boolean isInLevel = isInLevel();
+                if(isInLevel && !lastIsInLevel){
+                    waitForLevel();
+                    lastIsInLevel = true;
+                    function.run();
+                }
+                if(!isInLevel) lastIsInLevel = false;
+                Utilities.sleep(1);
+            }
+        }).start();
+    }
+
+    public static void waitForLevel(){
+        do {
+            Utilities.sleep(100);
+
+        } while (Level.getLevelName() == null);
+    }
+
+    public static void onLeaveLevel(Function function){
+        new Thread(() ->{
+            boolean lastIsntInLevel = false;
+            while(true) {
+                boolean isInLevel = isInLevel();
+                if (!isInLevel && !lastIsntInLevel) {
+                    lastIsntInLevel = true;
+                    function.run();
+                }
+                if (isInLevel) lastIsntInLevel = false;
+                Utilities.sleep(1);
+            }
+        }).start();
     }
 
     public static boolean isInEditor(){

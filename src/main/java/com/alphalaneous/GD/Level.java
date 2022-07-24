@@ -1,8 +1,10 @@
 package com.alphalaneous.GD;
 
+import com.alphalaneous.Interfaces.Function;
 import com.alphalaneous.Memory;
 import com.alphalaneous.Gamemode;
 import com.alphalaneous.LevelPosition;
+import com.alphalaneous.Utilities;
 
 public class Level {
 
@@ -15,6 +17,42 @@ public class Level {
 
         return new LevelPosition(Memory.read(xOffsets, 4).getFloat(0),
                 Memory.read(yOffsets, 4).getFloat(0));
+    }
+
+    public static void onX(float x, Function function){
+        new Thread(() ->{
+
+            float lastVal = 0;
+
+            while(true) {
+                if(getPosition() != null) {
+                    float val = getPosition().getX();
+
+                    if(Utilities.isBetween(x, lastVal, val, 0.2f)) function.run();
+
+                    lastVal = val;
+                    Utilities.sleep(1);
+                }
+            }
+        }).start();
+    }
+
+    public static void onY(float y, Function function){
+        new Thread(() ->{
+
+            float lastVal = 0;
+
+            while(true) {
+                if(getPosition() != null) {
+                    float val = getPosition().getY();
+
+                    if(Utilities.isBetween(y, lastVal, val, 0.2f)) function.run();
+
+                    lastVal = val;
+                    Utilities.sleep(1);
+                }
+            }
+        }).start();
     }
 
     public static Gamemode getGamemode(){
@@ -44,6 +82,28 @@ public class Level {
         return Gamemode.UNKNOWN;
     }
 
+    public static void onGamemode(Gamemode gamemode, Function function){
+        new Thread(() ->{
+
+            boolean isGamemode = false;
+
+            while(true) {
+
+                Gamemode gamemode1 = getGamemode();
+
+                if (gamemode1 == gamemode && !isGamemode) {
+                    function.run();
+                    isGamemode = true;
+                }
+                if(gamemode1 != gamemode){
+                    isGamemode = false;
+                }
+
+                Utilities.sleep(1);
+            }
+        }).start();
+    }
+
     public static float getPercent(){
 
         if(!Global.isInLevel()) return -1;
@@ -57,6 +117,24 @@ public class Level {
         else return 100;
     }
 
+    public static void onPercent(float percent, Function function){
+        new Thread(() ->{
+
+            float lastVal = 0;
+
+            while(true) {
+                float val = getPercent();
+
+                if(Utilities.isBetween(percent, lastVal, val, 0.2f)) function.run();
+
+                //System.out.println(lastVal + " | " + val);
+
+                lastVal = val;
+                Utilities.sleep(1);
+            }
+        }).start();
+    }
+
     public static int getID(){
 
         if(!Global.isInLevel()) return -1;
@@ -64,6 +142,26 @@ public class Level {
 
         int[] levelID = {0x164, 0x22C, 0x114, 0xF8};
         return Memory.read(levelID, 4).getInt(0);
+    }
+
+    public static void onID(int ID, Function function){
+        new Thread(() ->{
+
+            boolean hasLevel = false;
+
+            while(true) {
+                int curID = getID();
+
+                if (curID == ID && !hasLevel) {
+                    function.run();
+                    hasLevel = true;
+                }
+                if(curID != ID){
+                    hasLevel = false;
+                }
+                Utilities.sleep(1);
+            }
+        }).start();
     }
 
     public static float getSpeed(){
@@ -74,12 +172,57 @@ public class Level {
         return Memory.read(speed, 4).getFloat(0);
     }
 
+    public static void onSpeed(float speed, Function function){
+        new Thread(() ->{
+
+            float lastVal = 0;
+            boolean hasSpeed = false;
+
+            while(true) {
+                float val = getSpeed();
+
+                boolean isBetween = Utilities.isBetween(speed, lastVal, val, 0.2f);
+
+                if(isBetween && !hasSpeed) {
+                    function.run();
+                    hasSpeed = true;
+                }
+                if(!isBetween) hasSpeed = false;
+                lastVal = val;
+                Utilities.sleep(1);
+            }
+        }).start();
+    }
+
     public static float getSize(){
 
         if(!Global.isInLevel()) return -1;
 
         int[] size = {0x164, 0x224, 0x644};
         return Memory.read(size, 4).getFloat(0);
+    }
+
+    public static void onSize(float size, Function function){
+        new Thread(() ->{
+
+            float lastVal = 0;
+            boolean hasSize = false;
+
+            while(true) {
+                float val = getSize();
+
+                boolean isBetween = Utilities.isBetween(size, lastVal, val, 0.2f);
+
+                if(isBetween && !hasSize){
+                    function.run();
+                    hasSize = true;
+                }
+                if(!isBetween) hasSize = false;
+
+                lastVal = val;
+                Utilities.sleep(1);
+            }
+        }).start();
     }
 
     public static int getTotalAttempts(){
@@ -96,6 +239,27 @@ public class Level {
 
         int[] attempt = {0x164, 0x4A8};
         return Memory.read(attempt, 4).getInt(0);
+    }
+
+    public static void onAttempt(int attempt, Function function){
+        new Thread(() ->{
+
+            boolean didAttempt = false;
+
+            while(true) {
+
+                int attempts = getAttempt();
+
+                if (attempts == attempt && !didAttempt) {
+                    function.run();
+                    didAttempt = true;
+                }
+                if(attempts != attempt){
+                    didAttempt = false;
+                }
+                Utilities.sleep(1);
+            }
+        }).start();
     }
 
     public static int getJumps(){
@@ -244,4 +408,21 @@ public class Level {
         int[] isAlive = {0x164, 0x39C};
         return Memory.read(isAlive, 1).getByte(0) > 0;
     }
+
+    public static void onDeath(Function function){
+        new Thread(() ->{
+            boolean died = false;
+
+            while(true) {
+                boolean isDead = isDead();
+                if (isDead && !died && Global.isInLevel()) {
+                    function.run();
+                    died = true;
+                }
+                if(!isDead) died = false;
+                Utilities.sleep(1);
+            }
+        }).start();
+    }
+
 }

@@ -10,13 +10,11 @@ import com.sun.jna.win32.W32APIOptions;
 
 public class Memory {
 
-    private final static Kernel32 kernel32 = Native.loadLibrary("kernel32", Kernel32.class, W32APIOptions.DEFAULT_OPTIONS);
-    private final static User32 user32 = Native.loadLibrary("user32", User32.class, W32APIOptions.DEFAULT_OPTIONS);
-    private static final long gameBase = 5579472;
+    private static final Kernel32 kernel32 = Native.loadLibrary("kernel32", Kernel32.class, W32APIOptions.DEFAULT_OPTIONS);
+    private static final User32 user32 = Native.loadLibrary("user32", User32.class, W32APIOptions.DEFAULT_OPTIONS);
+    private static final long base = 0x3222d0;
+    private static long gameBase;
     private static WinNT.HANDLE hProcess;
-    private static final int PROCESS_VM_READ= 0x0010;
-    private static final int PROCESS_VM_WRITE = 0x0020;
-    private static final int PROCESS_VM_OPERATION = 0x0008;
 
     private static boolean initialized = false;
 
@@ -26,19 +24,17 @@ public class Memory {
             throw new OSNotSupportedException(System.getProperty("os.name") + " is not supported by Dash4j");
         }
 
+
         initialized = true;
         checkPID(false);
-        hProcess = openProcess(PROCESS_VM_READ|PROCESS_VM_WRITE|PROCESS_VM_OPERATION, PID);
+
+        hProcess = openProcess(PID);
 
         new Thread(() -> checkPID(true)).start();
         new Thread(() -> {
             while(true) {
-                hProcess = openProcess(PROCESS_VM_READ|PROCESS_VM_WRITE|PROCESS_VM_OPERATION, PID);
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                hProcess = openProcess(PID);
+                Utilities.sleep(100);
             }
         }).start();
     }
@@ -112,24 +108,40 @@ public class Memory {
 
             PID = pid.getValue();
 
-            isGDOpen = PID != 0;
+            gameBase = GetModuleBaseAddress(PID) + base;
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            isGDOpen = PID != 0;
+            Utilities.sleep(1000);
         }
         while (doLoop);
     }
-    private static WinNT.HANDLE openProcess(int permissions, int pid) {
-        return kernel32.OpenProcess(permissions, true, pid);
+    private static WinNT.HANDLE openProcess(int pid) {
+        return kernel32.OpenProcess(56, true, pid);
     }
 
     private static boolean isGDOpen = false;
 
     public static boolean isGDOpen(){
         return isGDOpen;
+    }
+
+    private static long GetModuleBaseAddress(int procID){
+        WinDef.DWORD pid = new WinDef.DWORD(procID);
+        WinNT.HANDLE hSnap = kernel32.CreateToolhelp32Snapshot(Tlhelp32.TH32CS_SNAPMODULE, pid);
+        Tlhelp32.MODULEENTRY32W module = new Tlhelp32.MODULEENTRY32W();
+
+        while(Kernel32.INSTANCE.Module32NextW(hSnap, module)) {
+
+            String s = Native.toString(module.szModule);
+
+            if(s.equals("GeometryDash.exe")){
+                Pointer x = module.modBaseAddr;
+                return Pointer.nativeValue(x);
+            }
+        }
+        kernel32.CloseHandle(hSnap);
+
+        return -1;
     }
 
     static {
