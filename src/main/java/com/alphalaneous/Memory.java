@@ -8,6 +8,9 @@ import com.sun.jna.platform.win32.*;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.W32APIOptions;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class Memory {
 
     private static final Kernel32 kernel32 = Native.loadLibrary("kernel32", Kernel32.class, W32APIOptions.DEFAULT_OPTIONS);
@@ -80,6 +83,38 @@ public class Memory {
         com.sun.jna.Memory output = new com.sun.jna.Memory(bytesToRead);
         kernel32.ReadProcessMemory(process, Pointer.createConstant(address), output, bytesToRead, read);
         return output;
+    }
+
+    public static void writeBytes(int[] offsets, byte[] value){
+        writeMemory(hProcess, offsets, value);
+    }
+
+    public static void writeInt(int[] offsets, int value){
+        writeMemory(hProcess, offsets, ByteBuffer.allocate(4).order(ByteOrder.nativeOrder()).putInt(value).array());
+    }
+
+    public static void writeFloat(int[] offsets, float value){
+        writeMemory(hProcess, offsets, ByteBuffer.allocate(4).order(ByteOrder.nativeOrder()).putFloat(value).array());
+    }
+
+    public static void writeString(int[] offsets, String value){
+        writeMemory(hProcess, offsets, value.getBytes());
+    }
+
+    private static void writeMemory(WinNT.HANDLE process, int[] offsets, byte[] data) {
+
+        if(!initialized){
+            throw new GDNotInitializedException("Memory not initialized, use Memory.init() to initialize.");
+        }
+        long addr = findDynAddress(hProcess, offsets, gameBase);
+
+        int size = data.length;
+        com.sun.jna.Memory toWrite = new  com.sun.jna.Memory(size);
+
+        for(int i = 0; i < size; i++) {
+            toWrite.setByte(i, data[i]);
+        }
+        kernel32.WriteProcessMemory(process, Pointer.createConstant(addr), toWrite, size, null);
     }
 
     private static long findDynAddress(WinNT.HANDLE process, int[] offsets, long baseAddress) {

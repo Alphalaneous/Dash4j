@@ -12,6 +12,24 @@ public class Global {
         return Memory.isGDOpen();
     }
 
+    public static Thread onGDOpen(Function function){
+        Thread a = new Thread(() ->{
+            boolean lastIsGDOpen = false;
+            while(true) {
+                boolean isGDOpen = isGDOpen();
+                if(isGDOpen && !lastIsGDOpen){
+                    waitForLevel();
+                    lastIsGDOpen = true;
+                    function.run();
+                }
+                if(!isGDOpen) lastIsGDOpen = false;
+                Utilities.sleep(1);
+            }
+        });
+        a.start();
+        return a;
+    }
+
     public static boolean isInPractice(){
         int[] inPractice = {0x164, 0x495};
         return Memory.read(inPractice, 1).getByte(0) > 0;
@@ -22,8 +40,8 @@ public class Global {
         return Memory.read(inLevel, 1).getByte(0) != 0;
     }
 
-    public static void onEnterLevel(Function function){
-        new Thread(() ->{
+    public static Thread onEnterLevel(Function function){
+        Thread a = new Thread(() ->{
             boolean lastIsInLevel = false;
             while(true) {
                 boolean isInLevel = isInLevel();
@@ -35,7 +53,9 @@ public class Global {
                 if(!isInLevel) lastIsInLevel = false;
                 Utilities.sleep(1);
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
     public static void waitForLevel(){
@@ -45,8 +65,8 @@ public class Global {
         } while (Level.getLevelName() == null);
     }
 
-    public static void onLeaveLevel(Function function){
-        new Thread(() ->{
+    public static Thread onLeaveLevel(Function function){
+        Thread a = new Thread(() ->{
             boolean lastIsntInLevel = false;
             while(true) {
                 boolean isInLevel = isInLevel();
@@ -57,7 +77,9 @@ public class Global {
                 if (isInLevel) lastIsntInLevel = false;
                 Utilities.sleep(1);
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
     public static boolean isInEditor(){

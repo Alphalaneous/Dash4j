@@ -4,14 +4,14 @@ public class ObjectData {
 
     public float x;
     public float y;
-    public float z;
+    public int z;
     public float scale;
     public float rotation;
     public int editorLayer1;
     public int editorLayer2;
     public int ID;
 
-    public ObjectData(int ID, float x, float y, float z, float scale, float rotation, int editorLayer1, int editorLayer2){
+    public ObjectData(int ID, float x, float y, int z, float scale, float rotation, int editorLayer1, int editorLayer2){
         this.ID = ID;
         this.x = x;
         this.y = y;
@@ -34,7 +34,7 @@ public class ObjectData {
         return y;
     }
 
-    public float getZ() {
+    public int getZ() {
         return z;
     }
 

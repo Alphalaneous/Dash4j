@@ -18,27 +18,40 @@ public class Level {
         return new LevelPosition(Memory.read(xOffsets, 4).getFloat(0),
                 Memory.read(yOffsets, 4).getFloat(0));
     }
+    public static void setX(float x){
+        if(Global.isInLevel()) {
+            int[] offsets = {0x164, 0x224, 0x67C};
+            Memory.writeFloat(offsets, x);
+        }
+    }
+    public static void setY(float y){
+        if(Global.isInLevel()) {
+            int[] offsets = {0x164, 0x224, 0x680};
+            Memory.writeFloat(offsets, y);
+        }
+    }
 
-    public static void onX(float x, Function function){
-        new Thread(() ->{
+    public static Thread onX(float x, Function function){
+        Thread a = new Thread(() ->{
 
             float lastVal = 0;
 
             while(true) {
                 if(getPosition() != null) {
                     float val = getPosition().getX();
-
-                    if(Utilities.isBetween(x, lastVal, val, 0.2f)) function.run();
+                    if(Utilities.isBetween(x, lastVal, val, 2f)) function.run();
 
                     lastVal = val;
                     Utilities.sleep(1);
                 }
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
-    public static void onY(float y, Function function){
-        new Thread(() ->{
+    public static Thread onY(float y, Function function){
+        Thread a = new Thread(() ->{
 
             float lastVal = 0;
 
@@ -46,13 +59,15 @@ public class Level {
                 if(getPosition() != null) {
                     float val = getPosition().getY();
 
-                    if(Utilities.isBetween(y, lastVal, val, 0.2f)) function.run();
+                    if(Utilities.isBetween(y, lastVal, val, 2f)) function.run();
 
                     lastVal = val;
                     Utilities.sleep(1);
                 }
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
     public static Gamemode getGamemode(){
@@ -82,8 +97,42 @@ public class Level {
         return Gamemode.UNKNOWN;
     }
 
-    public static void onGamemode(Gamemode gamemode, Function function){
-        new Thread(() ->{
+    public static void setGamemode(Gamemode gamemode){
+        if(Global.isInLevel()) {
+
+            int[] offsets = {0x164, 0x224, 0x638};
+
+            byte[] gamemodes = {0, 0, 0, 0, 0, 0};
+
+            if (gamemode != Gamemode.CUBE) {
+                switch (gamemode) {
+                    case SHIP:
+                        gamemodes[0] = 1;
+                        break;
+                    case UFO:
+                        gamemodes[1] = 1;
+                        break;
+                    case BALL:
+                        gamemodes[2] = 1;
+                        break;
+                    case WAVE:
+                        gamemodes[3] = 1;
+                        break;
+                    case ROBOT:
+                        gamemodes[4] = 1;
+                        break;
+                    case SPIDER:
+                        gamemodes[5] = 1;
+                        break;
+                }
+            }
+            Memory.writeBytes(offsets, gamemodes);
+        }
+    }
+
+
+    public static Thread onGamemode(Gamemode gamemode, Function function){
+        Thread a = new Thread(() ->{
 
             boolean isGamemode = false;
 
@@ -101,7 +150,9 @@ public class Level {
 
                 Utilities.sleep(1);
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
     public static float getPercent(){
@@ -117,8 +168,8 @@ public class Level {
         else return 100;
     }
 
-    public static void onPercent(float percent, Function function){
-        new Thread(() ->{
+    public static Thread onPercent(float percent, Function function){
+        Thread a = new Thread(() ->{
 
             float lastVal = 0;
 
@@ -127,12 +178,12 @@ public class Level {
 
                 if(Utilities.isBetween(percent, lastVal, val, 0.2f)) function.run();
 
-                //System.out.println(lastVal + " | " + val);
-
                 lastVal = val;
                 Utilities.sleep(1);
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
     public static int getID(){
@@ -144,8 +195,8 @@ public class Level {
         return Memory.read(levelID, 4).getInt(0);
     }
 
-    public static void onID(int ID, Function function){
-        new Thread(() ->{
+    public static Thread onID(int ID, Function function){
+        Thread a = new Thread(() ->{
 
             boolean hasLevel = false;
 
@@ -161,7 +212,9 @@ public class Level {
                 }
                 Utilities.sleep(1);
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
     public static float getSpeed(){
@@ -172,8 +225,15 @@ public class Level {
         return Memory.read(speed, 4).getFloat(0);
     }
 
-    public static void onSpeed(float speed, Function function){
-        new Thread(() ->{
+    public static void setSpeed(float speed){
+        if(Global.isInLevel()) {
+            int[] offsets = {0x164, 0x224, 0x648};
+            Memory.writeFloat(offsets, speed);
+        }
+    }
+
+    public static Thread onSpeed(float speed, Function function){
+        Thread a = new Thread(() ->{
 
             float lastVal = 0;
             boolean hasSpeed = false;
@@ -191,7 +251,9 @@ public class Level {
                 lastVal = val;
                 Utilities.sleep(1);
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
     public static float getSize(){
@@ -202,8 +264,16 @@ public class Level {
         return Memory.read(size, 4).getFloat(0);
     }
 
-    public static void onSize(float size, Function function){
-        new Thread(() ->{
+    public static void setSize(float size){
+
+        if(Global.isInLevel()) {
+            int[] offsets = {0x164, 0x224, 0x644};
+            Memory.writeFloat(offsets, size);
+        }
+    }
+
+    public static Thread onSize(float size, Function function){
+        Thread a  = new Thread(() ->{
 
             float lastVal = 0;
             boolean hasSize = false;
@@ -222,7 +292,9 @@ public class Level {
                 lastVal = val;
                 Utilities.sleep(1);
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
     public static int getTotalAttempts(){
@@ -241,8 +313,15 @@ public class Level {
         return Memory.read(attempt, 4).getInt(0);
     }
 
-    public static void onAttempt(int attempt, Function function){
-        new Thread(() ->{
+    public static void setAttempt(int attempt){
+        if(Global.isInLevel()) {
+            int[] offsets = {0x164, 0x4A8};
+            Memory.writeInt(offsets, attempt);
+        }
+    }
+
+    public static Thread onAttempt(int attempt, Function function){
+        Thread a = new Thread(() ->{
 
             boolean didAttempt = false;
 
@@ -259,7 +338,9 @@ public class Level {
                 }
                 Utilities.sleep(1);
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
 
     public static int getJumps(){
@@ -270,6 +351,13 @@ public class Level {
         return Memory.read(jumps, 4).getInt(0);
     }
 
+    public static void setJumps(int jumps){
+        if(Global.isInLevel()) {
+            int[] offsets = {0x164, 0x22C, 0x114, 0x224};
+            Memory.writeInt(offsets, jumps);
+        }
+    }
+
     public static int getNormalPercentage(){
 
         if(!Global.isInLevel()) return -1;
@@ -278,12 +366,26 @@ public class Level {
         return Memory.read(percentage, 4).getInt(0);
     }
 
+    public static void setNormalPercentage(int percentage){
+        if(Global.isInLevel()) {
+            int[] offsets = {0x164, 0x22C, 0x114, 0x248};
+            Memory.writeInt(offsets, percentage);
+        }
+    }
+
     public static int getPracticePercentage(){
 
         if(!Global.isInLevel()) return -1;
 
         int[] percentage = {0x164, 0x22C, 0x114, 0x26C};
         return Memory.read(percentage, 4).getInt(0);
+    }
+
+    public static void setPracticePercentage(int percentage){
+        if(Global.isInLevel()) {
+            int[] offsets = {0x164, 0x22C, 0x114, 0x26C};
+            Memory.writeInt(offsets, percentage);
+        }
     }
 
     public static int getSongID(){
@@ -409,8 +511,8 @@ public class Level {
         return Memory.read(isAlive, 1).getByte(0) > 0;
     }
 
-    public static void onDeath(Function function){
-        new Thread(() ->{
+    public static Thread onDeath(Function function){
+        Thread a = new Thread(() ->{
             boolean died = false;
 
             while(true) {
@@ -422,7 +524,8 @@ public class Level {
                 if(!isDead) died = false;
                 Utilities.sleep(1);
             }
-        }).start();
+        });
+        a.start();
+        return a;
     }
-
 }
