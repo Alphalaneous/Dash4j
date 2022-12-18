@@ -1,4 +1,4 @@
-package com.alphalaneous;
+package com.alphalaneous.Memory;
 
 public class LevelPosition {
 

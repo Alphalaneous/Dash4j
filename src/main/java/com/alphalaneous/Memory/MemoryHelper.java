@@ -1,7 +1,10 @@
-package com.alphalaneous;
+package com.alphalaneous.Memory;
 
 import com.alphalaneous.Exceptions.GDNotInitializedException;
 import com.alphalaneous.Exceptions.OSNotSupportedException;
+import com.alphalaneous.Interfaces.Kernel32b;
+import com.alphalaneous.Utilities;
+import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.*;
@@ -11,9 +14,14 @@ import com.sun.jna.win32.W32APIOptions;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class Memory {
+import static com.sun.jna.platform.win32.WinNT.PROCESS_QUERY_INFORMATION;
+import static com.sun.jna.platform.win32.WinNT.PROCESS_VM_READ;
+
+public class MemoryHelper {
 
     private static final Kernel32 kernel32 = Native.loadLibrary("kernel32", Kernel32.class, W32APIOptions.DEFAULT_OPTIONS);
+    private static final Kernel32b kernel32b = Native.loadLibrary("kernel32", Kernel32b.class, W32APIOptions.ASCII_OPTIONS);
+
     private static final User32 user32 = Native.loadLibrary("user32", User32.class, W32APIOptions.DEFAULT_OPTIONS);
     private static final long base = 0x3222d0;
     private static long gameBase;
@@ -21,12 +29,14 @@ public class Memory {
 
     private static boolean initialized = false;
 
+
+
+
     public static void init(){
 
         if(!System.getProperty("os.name").toLowerCase().startsWith("windows")){
             throw new OSNotSupportedException(System.getProperty("os.name") + " is not supported by Dash4j");
         }
-
 
         initialized = true;
         checkPID(false);
@@ -41,10 +51,26 @@ public class Memory {
             }
         }).start();
     }
+
+    public static boolean isInFocus(){
+        WinDef.HWND windowHandle = user32.GetForegroundWindow();
+        IntByReference pid= new IntByReference();
+        user32.GetWindowThreadProcessId(windowHandle, pid);
+        WinNT.HANDLE processHandle=kernel32.OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, true, pid.getValue());
+
+        char[] filename = new char[512];
+        Psapi.INSTANCE.GetModuleFileNameExW(processHandle, null, filename, filename.length);
+        String name=new String(filename);
+        name = name.replace("\0", "");
+
+        return name.endsWith("GeometryDash.exe");
+    }
+
     public static com.sun.jna.Memory read(int[] offsets, int bytesToRead) {
         if(!initialized){
             throw new GDNotInitializedException("Memory not initialized, use Memory.init() to initialize.");
         }
+
         long addr = findDynAddress(hProcess, offsets, gameBase);
         return readMemory(hProcess, addr, bytesToRead);
     }
@@ -53,6 +79,7 @@ public class Memory {
         if(!initialized){
             throw new GDNotInitializedException("Memory not initialized, use Memory.init() to initialize.");
         }
+
         long addr = findDynAddress(hProcess, offsets, gameBase);
 
         int length = readMemory(hProcess, addr + 0x10, bytesToRead).getInt(0);
@@ -101,11 +128,28 @@ public class Memory {
         writeMemory(hProcess, offsets, value.getBytes());
     }
 
+    //write bytes to address
+
+    public static void writeToAddress(long address, byte[] data){
+
+        address = GetModuleBaseAddress(PID) + address;
+
+        int size = data.length;
+        com.sun.jna.Memory toWrite = new  com.sun.jna.Memory(size);
+
+        for(int i = 0; i < size; i++) {
+            toWrite.setByte(i, data[i]);
+        }
+        kernel32.WriteProcessMemory(hProcess, Pointer.createConstant(address), toWrite, size, null);
+    }
+
+
     private static void writeMemory(WinNT.HANDLE process, int[] offsets, byte[] data) {
 
         if(!initialized){
             throw new GDNotInitializedException("Memory not initialized, use Memory.init() to initialize.");
         }
+
         long addr = findDynAddress(hProcess, offsets, gameBase);
 
         int size = data.length;
@@ -179,7 +223,40 @@ public class Memory {
         return -1;
     }
 
+    public static boolean injectDLL(String dllName) {
+
+        BaseTSD.DWORD_PTR loadLibraryAddress = kernel32b.GetProcAddress(kernel32b.GetModuleHandle("KERNEL32"), "LoadLibraryA");
+        if(loadLibraryAddress.intValue() == 0) {
+            System.out.println("Could not find LoadLibrary! Error: " + kernel32b.GetLastError());
+            return false;
+        }
+
+        WinDef.LPVOID dllNameAddress = kernel32b.VirtualAllocEx(hProcess, null, (dllName.length() + 1), new BaseTSD.DWORD_PTR(0x3000), new BaseTSD.DWORD_PTR(0x4));
+        if(dllNameAddress == null) {
+            System.out.println("dllNameAddress was NULL! Error: " + kernel32b.GetLastError());
+            return false;
+        }
+
+        Pointer m = new Memory(dllName.length() + 1);
+        m.setString(0, dllName);
+
+        boolean wpmSuccess = kernel32b.WriteProcessMemory(hProcess, dllNameAddress, m, dllName.length(), null).booleanValue();
+        if(!wpmSuccess) {
+            System.out.println("WriteProcessMemory failed! Error: " + kernel32b.GetLastError());
+            return false;
+        }
+
+        BaseTSD.DWORD_PTR threadHandle = kernel32b.CreateRemoteThread(hProcess, 0, 0, loadLibraryAddress, dllNameAddress, 0, 0);
+        if(threadHandle.intValue() == 0) {
+            System.out.println("threadHandle was invalid! Error: " + kernel32b.GetLastError());
+            return false;
+        }
+
+        kernel32.CloseHandle(hProcess);
+        return true;
+    }
+
     static {
-        Memory.init();
+        MemoryHelper.init();
     }
 }

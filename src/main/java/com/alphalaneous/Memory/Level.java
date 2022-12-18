@@ -1,9 +1,7 @@
-package com.alphalaneous.GD;
+package com.alphalaneous.Memory;
 
-import com.alphalaneous.Interfaces.Function;
-import com.alphalaneous.Memory;
 import com.alphalaneous.Gamemode;
-import com.alphalaneous.LevelPosition;
+import com.alphalaneous.Interfaces.Function;
 import com.alphalaneous.Utilities;
 
 public class Level {
@@ -15,19 +13,19 @@ public class Level {
         int[] xOffsets = {0x164, 0x224, 0x67C};
         int[] yOffsets = {0x164, 0x224, 0x680};
 
-        return new LevelPosition(Memory.read(xOffsets, 4).getFloat(0),
-                Memory.read(yOffsets, 4).getFloat(0));
+        return new LevelPosition(MemoryHelper.read(xOffsets, 4).getFloat(0),
+                MemoryHelper.read(yOffsets, 4).getFloat(0));
     }
     public static void setX(float x){
         if(Global.isInLevel()) {
             int[] offsets = {0x164, 0x224, 0x67C};
-            Memory.writeFloat(offsets, x);
+            MemoryHelper.writeFloat(offsets, x);
         }
     }
     public static void setY(float y){
         if(Global.isInLevel()) {
             int[] offsets = {0x164, 0x224, 0x680};
-            Memory.writeFloat(offsets, y);
+            MemoryHelper.writeFloat(offsets, y);
         }
     }
 
@@ -76,7 +74,7 @@ public class Level {
 
         int[] gamemode = {0x164, 0x224, 0x638};
 
-        byte[] gamemodes = Memory.read(gamemode, 24).getByteArray(0,6);
+        byte[] gamemodes = MemoryHelper.read(gamemode, 24).getByteArray(0,6);
 
         boolean isCube = true;
 
@@ -126,7 +124,7 @@ public class Level {
                         break;
                 }
             }
-            Memory.writeBytes(offsets, gamemodes);
+            MemoryHelper.writeBytes(offsets, gamemodes);
         }
     }
 
@@ -192,7 +190,7 @@ public class Level {
 
 
         int[] levelID = {0x164, 0x22C, 0x114, 0xF8};
-        return Memory.read(levelID, 4).getInt(0);
+        return MemoryHelper.read(levelID, 4).getInt(0);
     }
 
     public static Thread onID(int ID, Function function){
@@ -222,13 +220,13 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] speed = {0x164, 0x224, 0x648};
-        return Memory.read(speed, 4).getFloat(0);
+        return MemoryHelper.read(speed, 4).getFloat(0);
     }
 
     public static void setSpeed(float speed){
         if(Global.isInLevel()) {
             int[] offsets = {0x164, 0x224, 0x648};
-            Memory.writeFloat(offsets, speed);
+            MemoryHelper.writeFloat(offsets, speed);
         }
     }
 
@@ -261,14 +259,14 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] size = {0x164, 0x224, 0x644};
-        return Memory.read(size, 4).getFloat(0);
+        return MemoryHelper.read(size, 4).getFloat(0);
     }
 
     public static void setSize(float size){
 
         if(Global.isInLevel()) {
             int[] offsets = {0x164, 0x224, 0x644};
-            Memory.writeFloat(offsets, size);
+            MemoryHelper.writeFloat(offsets, size);
         }
     }
 
@@ -302,7 +300,7 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] attempts = {0x164, 0x22C, 0x114, 0x218};
-        return Memory.read(attempts, 4).getInt(0);
+        return MemoryHelper.read(attempts, 4).getInt(0);
     }
 
     public static int getAttempt(){
@@ -310,13 +308,13 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] attempt = {0x164, 0x4A8};
-        return Memory.read(attempt, 4).getInt(0);
+        return MemoryHelper.read(attempt, 4).getInt(0);
     }
 
     public static void setAttempt(int attempt){
         if(Global.isInLevel()) {
             int[] offsets = {0x164, 0x4A8};
-            Memory.writeInt(offsets, attempt);
+            MemoryHelper.writeInt(offsets, attempt);
         }
     }
 
@@ -348,13 +346,13 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] jumps = {0x164, 0x22C, 0x114, 0x224};
-        return Memory.read(jumps, 4).getInt(0);
+        return MemoryHelper.read(jumps, 4).getInt(0);
     }
 
     public static void setJumps(int jumps){
         if(Global.isInLevel()) {
             int[] offsets = {0x164, 0x22C, 0x114, 0x224};
-            Memory.writeInt(offsets, jumps);
+            MemoryHelper.writeInt(offsets, jumps);
         }
     }
 
@@ -363,13 +361,13 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] percentage = {0x164, 0x22C, 0x114, 0x248};
-        return Memory.read(percentage, 4).getInt(0);
+        return MemoryHelper.read(percentage, 4).getInt(0);
     }
 
     public static void setNormalPercentage(int percentage){
         if(Global.isInLevel()) {
             int[] offsets = {0x164, 0x22C, 0x114, 0x248};
-            Memory.writeInt(offsets, percentage);
+            MemoryHelper.writeInt(offsets, percentage);
         }
     }
 
@@ -378,13 +376,13 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] percentage = {0x164, 0x22C, 0x114, 0x26C};
-        return Memory.read(percentage, 4).getInt(0);
+        return MemoryHelper.read(percentage, 4).getInt(0);
     }
 
     public static void setPracticePercentage(int percentage){
         if(Global.isInLevel()) {
             int[] offsets = {0x164, 0x22C, 0x114, 0x26C};
-            Memory.writeInt(offsets, percentage);
+            MemoryHelper.writeInt(offsets, percentage);
         }
     }
 
@@ -393,7 +391,7 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] songID = {0x164, 0x488, 0x1C4};
-        return Memory.read(songID, 4).getInt(0);
+        return MemoryHelper.read(songID, 4).getInt(0);
     }
 
     public static int getStars(){
@@ -401,7 +399,7 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] stars = {0x164, 0x22C, 0x114, 0x2AC};
-        return Memory.read(stars, 4).getInt(0);
+        return MemoryHelper.read(stars, 4).getInt(0);
     }
 
     public static int getFeaturedScore(){
@@ -409,7 +407,7 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] score = {0x164, 0x22C, 0x114, 0x27C};
-        return Memory.read(score, 4).getInt(0);
+        return MemoryHelper.read(score, 4).getInt(0);
     }
 
     public static boolean isFeatured(){
@@ -421,7 +419,7 @@ public class Level {
         if(!Global.isInLevel()) return false;
 
         int[] isEpic = {0x164, 0x22C, 0x114, 0x280};
-        return Memory.read(isEpic, 1).getByte(0) > 0;
+        return MemoryHelper.read(isEpic, 1).getByte(0) > 0;
     }
 
     public static boolean isDemon(){
@@ -429,7 +427,7 @@ public class Level {
         if(!Global.isInLevel()) return false;
 
         int[] isDemon = {0x164, 0x22C, 0x114, 0x29C};
-        return Memory.read(isDemon, 1).getByte(0) > 0;
+        return MemoryHelper.read(isDemon, 1).getByte(0) > 0;
     }
 
     public static boolean isAuto(){
@@ -437,7 +435,7 @@ public class Level {
         if(!Global.isInLevel()) return false;
 
         int[] isAuto = {0x164, 0x22C, 0x114, 0x2B0};
-        return Memory.read(isAuto, 1).getByte(0) > 0;
+        return MemoryHelper.read(isAuto, 1).getByte(0) > 0;
     }
 
     public static int getDifficultyValue(){
@@ -445,7 +443,7 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] value = {0x164, 0x22C, 0x114, 0x1E4};
-        return Memory.read(value, 4).getInt(0);
+        return MemoryHelper.read(value, 4).getInt(0);
     }
 
     public static int getDemonDifficultyValue(){
@@ -453,7 +451,7 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] value = {0x164, 0x22C, 0x114, 0x2A0};
-        return Memory.read(value, 4).getInt(0);
+        return MemoryHelper.read(value, 4).getInt(0);
     }
 
     public static String getLevelName(){
@@ -461,7 +459,7 @@ public class Level {
         if(!Global.isInLevel()) return null;
 
         int[] levelName = {0x164, 0x22C, 0x114, 0xFC};
-        return Memory.readString(levelName, 32);
+        return MemoryHelper.readString(levelName, 32);
     }
 
     public static String getLevelCreator(){
@@ -469,7 +467,7 @@ public class Level {
         if(!Global.isInLevel()) return null;
 
         int[] creator = {0x164, 0x22C, 0x114, 0x144};
-        return Memory.readString(creator, 32);
+        return MemoryHelper.readString(creator, 32);
     }
 
     public static String getEditorLevelName(){
@@ -477,7 +475,7 @@ public class Level {
         if(!Global.isInLevel()) return null;
 
         int[] levelName = {0x168, 0x124, 0xEC, 0x110, 0x114, 0xFC};
-        return Memory.readString(levelName, 32);
+        return MemoryHelper.readString(levelName, 32);
     }
 
     public static float getLength(){
@@ -485,7 +483,7 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] length = {0x164, 0x3B4};
-        return Memory.read(length, 4).getFloat(0);
+        return MemoryHelper.read(length, 4).getFloat(0);
     }
 
     public static int getObjectCount(){
@@ -493,7 +491,7 @@ public class Level {
         if(!Global.isInLevel()) return -1;
 
         int[] objectCount = {0x168, 0x3A0};
-        return Memory.read(objectCount, 4).getInt(0);
+        return MemoryHelper.read(objectCount, 4).getInt(0);
     }
 
     public static String getCreatorName(){
@@ -501,14 +499,14 @@ public class Level {
         if(!Global.isInLevel()) return null;
 
         int[] creatorName = {0x164, 0x22C, 0x114, 0xFC};
-        return Memory.readString(creatorName, 32);
+        return MemoryHelper.readString(creatorName, 32);
     }
     public static boolean isDead(){
 
         if(!Global.isInLevel()) return true;
 
         int[] isAlive = {0x164, 0x39C};
-        return Memory.read(isAlive, 1).getByte(0) > 0;
+        return MemoryHelper.read(isAlive, 1).getByte(0) > 0;
     }
 
     public static Thread onDeath(Function function){

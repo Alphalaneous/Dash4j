@@ -1,7 +1,6 @@
-package com.alphalaneous.GD;
+package com.alphalaneous.Memory;
 
 import com.alphalaneous.Interfaces.Function;
-import com.alphalaneous.Memory;
 import com.alphalaneous.Utilities;
 
 import java.awt.*;
@@ -9,7 +8,7 @@ import java.awt.*;
 public class Global {
 
     public static boolean isGDOpen(){
-        return Memory.isGDOpen();
+        return MemoryHelper.isGDOpen();
     }
 
     public static Thread onGDOpen(Function function){
@@ -32,12 +31,12 @@ public class Global {
 
     public static boolean isInPractice(){
         int[] inPractice = {0x164, 0x495};
-        return Memory.read(inPractice, 1).getByte(0) > 0;
+        return MemoryHelper.read(inPractice, 1).getByte(0) > 0;
     }
 
     public static boolean isInLevel(){
         int[] inLevel = {0x164};
-        return Memory.read(inLevel, 1).getByte(0) != 0;
+        return MemoryHelper.read(inLevel, 1).getByte(0) != 0;
     }
 
     public static Thread onEnterLevel(Function function){
@@ -84,13 +83,13 @@ public class Global {
 
     public static boolean isInEditor(){
         int[] inEditor = {0x168};
-        return Memory.read(inEditor, 1).getByte(0) > 0;
+        return MemoryHelper.read(inEditor, 1).getByte(0) > 0;
     }
 
     public static Dimension getResolution(){
         int[] resolution = {0x2E0};
 
-        int resolutionValue = Memory.read(resolution, 4).getInt(0);
+        int resolutionValue = MemoryHelper.read(resolution, 4).getInt(0);
 
         switch (resolutionValue){
             case 1: return new Dimension(640,480);
