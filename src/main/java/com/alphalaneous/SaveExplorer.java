@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -28,6 +29,7 @@ public class SaveExplorer {
     private static final LinkedHashMap<String, Object> gameManager = new LinkedHashMap<>();
     private static final LinkedHashMap<String, Object> localLevels = new LinkedHashMap<>();
 
+    private static boolean saveLoaded = false;
 
     public static String getFolder(){
         return dataFolder;
@@ -57,6 +59,9 @@ public class SaveExplorer {
             byte[] decodedBytes = Base64.getUrlDecoder().decode(xorDecoded.replace("\0", "").split("=")[0]);
 
             return Utilities.decompress(decodedBytes).replace("&#26;", "").replace("<plist version=\"1.0\" gjver=\"2.0\">", "").replace("</plist>", "");
+        }
+        catch (NoSuchFileException e){
+            return "<plist></plist>";
         }
         catch (Exception e){
             e.printStackTrace();
@@ -300,10 +305,20 @@ public class SaveExplorer {
     }
 
     public static void updateGameManager() throws IOException {
+
+        if(!Files.isDirectory(Paths.get(dataFolder))) Files.createDirectory(Paths.get(dataFolder));
+
+        if(!Files.exists(Paths.get(saveFile))) Files.createFile(Paths.get(saveFile));
+
         Files.write(Paths.get(saveFile), SaveExplorer.createSave(gameManager).getBytes());
     }
 
     public static void updateLocalLevels() throws IOException {
+
+        if(!Files.isDirectory(Paths.get(dataFolder))) Files.createDirectory(Paths.get(dataFolder));
+
+        if(!Files.exists(Paths.get(levelsFile))) Files.createFile(Paths.get(levelsFile));
+
         Files.write(Paths.get(levelsFile), SaveExplorer.createSave(localLevels).getBytes());
     }
 
@@ -326,16 +341,18 @@ public class SaveExplorer {
             NodeList nList = doc.getDocumentElement().getChildNodes();
 
             values.putAll(parseNodeList(nList));
+            saveLoaded = true;
         }
         catch (Exception e){
             e.printStackTrace();
+            saveLoaded = false;
             throw new RuntimeException("Failed to load " + identifier);
         }
 
     }
 
-    public static void main(String... args){
-        SaveExplorer.loadSave();
+    public static void main(String... args) throws IOException {
+
     }
 
     public static void loadSave() {
@@ -361,7 +378,7 @@ public class SaveExplorer {
     }
 
     public static Object getDataFromKey(LinkedHashMap<String, Object> values, String key){
-        if(values.isEmpty()) throw new SaveFileNotLoadedException("Save file is not loaded. Reload with SaveExplorer.loadSave();");
+        if(!saveLoaded) throw new SaveFileNotLoadedException("Save file is not loaded. Reload with SaveExplorer.loadSave();");
 
         if(key.equalsIgnoreCase("GJA_002")){
             int yes = JOptionPane.showConfirmDialog(null, "This software is accessing your Geometry Dash password.\nAllow?");
@@ -445,11 +462,11 @@ public class SaveExplorer {
     }
 
     public static String getUsername(){
-        return (String) getDataFromKey(gameManager, "GJA_001");
+        return (String) ((SaveValue) getDataFromKey(gameManager, "GJA_001")).value;
     }
 
     public static String getPassword(){
-        return (String) getDataFromKey(gameManager,"GJA_002");
+        return (String) ((SaveValue)getDataFromKey(gameManager,"GJA_002")).value;
     }
 
     public static long getAccountID(){

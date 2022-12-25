@@ -179,6 +179,32 @@ public class MemoryHelper {
 
     private static int PID;
 
+    public static String getExePath(){
+        Tlhelp32.PROCESSENTRY32.ByReference processEntry = new Tlhelp32.PROCESSENTRY32.ByReference();
+        WinNT.HANDLE processSnapshot =
+                kernel32.CreateToolhelp32Snapshot(Tlhelp32.TH32CS_SNAPPROCESS, new WinDef.DWORD(0));
+        try {
+            while (kernel32.Process32Next(processSnapshot, processEntry)) {
+
+                if (Native.toString(processEntry.szExeFile).equalsIgnoreCase("GeometryDash.exe")) {
+                    WinNT.HANDLE moduleSnapshot = kernel32.CreateToolhelp32Snapshot(Tlhelp32.TH32CS_SNAPMODULE, processEntry.th32ProcessID);
+                    try {
+                        Tlhelp32.MODULEENTRY32W.ByReference me = new Tlhelp32.MODULEENTRY32W.ByReference();
+                        kernel32.Module32FirstW(moduleSnapshot, me);
+                        return me.szExePath();
+                    }
+                    finally {
+                        kernel32.CloseHandle(moduleSnapshot);
+                    }
+                }
+            }
+        }
+        finally {
+            kernel32.CloseHandle(processSnapshot);
+        }
+        return "";
+    }
+
     private static void checkPID(boolean doLoop){
         do {
             IntByReference pid = new IntByReference(0);
